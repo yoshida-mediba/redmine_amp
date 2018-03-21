@@ -1,0 +1,76 @@
+<h2><%=l(:label_overview)%></h2>
+
+<div class="splitcontentleft">
+  <% if @project.description.present? %>
+  <div class="wiki">
+    <%= textilizable @project.description %>
+  </div>
+  <% end %>
+  <% if @project.homepage.present? || @project.visible_custom_field_values.any?(&:present?) %>
+  <ul>
+  <% unless @project.homepage.blank? %>
+    <li><span class="label"><%=l(:field_homepage)%>:</span> <%= link_to_if uri_with_safe_scheme?(@project.homepage), @project.homepage, @project.homepage %></li>
+  <% end %>
+  <% render_custom_field_values(@project) do |custom_field, formatted| %>
+    <li><span class="label"><%= custom_field.name %>:</span> <%= formatted %></li>
+  <% end %>
+  </ul>
+  <% end %>
+
+  <%= call_hook(:view_projects_show_left, :project => @project) %>
+</div>
+
+<div class="splitcontentright">
+  <div class="wiki">
+    <h2 style="margin-top:0.3em;">Recently updated</h2>
+  </div>
+  
+  <% if @blog.any? %>
+  <fieldset class="box">
+    <legend>Report</legend>
+    <div class="wiki">
+    <% date = nil %>
+    <% @blog.each do |row| %>
+    <% if date != format_date(row.report_date) %>
+    <% date = format_date(row.report_date) %>
+    <b>[<%= format_date(row.report_date) %>]</b><br />
+    <% end %>
+    <%= link_to(row.title, {:controller => :blogs, :action => :show, :id => row.id}) %><br />
+    <% end %>
+    </div>
+  </fieldset>
+  <% end %>
+
+  <% if @wiki.any? %>
+  <fieldset class="box">
+    <legend>Wiki</legend>
+    <div class="wiki">
+    <% date = nil %>
+    <% @wiki.each do |row| %>
+    <% if date != format_date(row.content.updated_on) %>
+    <% date = format_date(row.content.updated_on) %>
+    <b>[<%= format_date(row.content.updated_on) %>]</b><br />
+    <% end %>
+    <%= link_to(row.content.page.pretty_title, :controller => 'wiki', :action => 'show', :project_id => row.content.page.project, :id => row.content.page.title) %><br />
+    <% end %>
+    </div>
+  </fieldset>
+  <% end %>
+  
+  <% if @news.any? && authorize_for('news', 'index') %>
+  <fieldset class="box">
+    <legend><%=l(:label_news_latest)%></legend>
+    <% date = nil %>
+    <% @news.each do |row| %>
+    <% if date != format_date(row.created_on) %>
+    <% date = format_date(row.created_on) %>
+    <b>[<%= format_date(row.created_on) %>]</b><br />
+    <% end %>
+    <%= link_to(row.title, {:controller => :news, :action => :show, :id => row.id}) %><br />
+    <% end %>
+  </fieldset>
+  <% end %>
+
+</div>
+
+<% html_title(l(:label_overview)) -%>
